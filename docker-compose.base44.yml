@@ -1,0 +1,68 @@
+services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: echo_jociste
+      POSTGRES_USER: echo
+      POSTGRES_PASSWORD: echo_dev_pass_2024
+    volumes:
+      - db_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U echo -d echo_jociste"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    restart: on-failure
+
+  api:
+    image: node:22-slim
+    working_dir: /app
+    volumes:
+      - ./server:/app
+      - api_node_modules:/app/node_modules
+    env_file:
+      - /run/base44/app.env
+    environment:
+      - DATABASE_URL=postgresql://echo:echo_dev_pass_2024@db:5432/echo_jociste
+      - PORT=8000
+      - JWT_SECRET=${JWT_SECRET:-dev_jwt_secret_placeholder}
+      - BLOG_FEED_URL=https://magazinechretienne1echojociste.blogspot.com/feeds/posts/default
+    depends_on:
+      db:
+        condition: service_healthy
+    command: ["sh", "-ec", "apt-get update -qq && apt-get install -y -qq openssl ca-certificates > /dev/null 2>&1 && npm install && npx prisma generate && npx prisma db push --accept-data-loss && node prisma/seed.js && exec npm run dev"]
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://localhost:8000/api/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    restart: on-failure
+
+  web:
+    image: node:22-slim
+    working_dir: /app
+    volumes:
+      - ./client:/app
+      - web_node_modules:/app/node_modules
+    environment:
+      - __VITE_ADDITIONAL_SERVER_ALLOWED_HOSTS
+      - VITE_API_URL=
+    ports:
+      - "3000:5173"
+    depends_on:
+      api:
+        condition: service_healthy
+    command: ["sh", "-ec", "npm install && exec npm run dev -- --host 0.0.0.0"]
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://localhost:5173/').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+    restart: on-failure
+
+volumes:
+  db_data:
+  api_node_modules:
+  web_node_modules:

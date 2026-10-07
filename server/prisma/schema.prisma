@@ -1,0 +1,282 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  ADMIN
+  EDITOR
+  WRITER
+  MANAGER
+  READER
+}
+
+enum ArticleStatus {
+  DRAFT
+  PUBLISHED
+  ARCHIVED
+}
+
+enum ArticleSource {
+  BLOG
+  APPLICATION
+}
+
+enum EventStatus {
+  UPCOMING
+  ONGOING
+  COMPLETED
+}
+
+enum ModerationStatus {
+  PENDING
+  APPROVED
+  REJECTED
+  ARCHIVED
+}
+
+model User {
+  id            String   @id @default(uuid())
+  email         String   @unique
+  password      String
+  name          String
+  role          Role     @default(READER)
+  avatar        String?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  comments      Comment[]
+  contributions Contribution[]
+  testimonials  Testimonial[]
+}
+
+model Category {
+  id        String   @id @default(uuid())
+  name      String   @unique
+  slug      String   @unique
+  color     String?
+  articles  Article[]
+  podcasts  Podcast[]
+  videos    Video[]
+  createdAt DateTime @default(now())
+}
+
+model Tag {
+  id       String    @id @default(uuid())
+  name     String    @unique
+  slug     String    @unique
+  articles Article[]
+}
+
+model Author {
+  id       String   @id @default(uuid())
+  name     String
+  bio      String?
+  avatar   String?
+  articles Article[]
+  podcasts Podcast[]
+  videos   Video[]
+  createdAt DateTime @default(now())
+}
+
+model Article {
+  id              String        @id @default(uuid())
+  title           String
+  slug            String        @unique
+  excerpt         String?
+  content         String
+  coverImage      String?
+  images          String[]
+  links           String[]
+  status          ArticleStatus @default(PUBLISHED)
+  source          ArticleSource @default(APPLICATION)
+  originalUrl     String?
+  blogPostId      String?
+  dateImport      DateTime?
+  dateModification DateTime?
+  synchronized    Boolean       @default(false)
+  featured        Boolean       @default(false)
+  publishedAt     DateTime     @default(now())
+  createdAt       DateTime     @default(now())
+  updatedAt       DateTime     @updatedAt
+
+  authorId   String?
+  author     Author?   @relation(fields: [authorId], references: [id])
+  categoryId String?
+  category   Category? @relation(fields: [categoryId], references: [id])
+  tags       Tag[]
+  comments   Comment[]
+}
+
+model Podcast {
+  id          String    @id @default(uuid())
+  title       String
+  slug        String    @unique
+  description String?
+  coverImage  String?
+  audioUrl    String
+  duration    String?
+  speaker     String?
+  authorId    String?
+  author      Author?   @relation(fields: [authorId], references: [id])
+  categoryId  String?
+  category    Category? @relation(fields: [categoryId], references: [id])
+  publishedAt DateTime  @default(now())
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+}
+
+model Video {
+  id          String    @id @default(uuid())
+  title       String
+  slug        String    @unique
+  description String?
+  thumbnail   String?
+  videoUrl    String
+  speaker     String?
+  authorId    String?
+  author      Author?   @relation(fields: [authorId], references: [id])
+  categoryId  String?
+  category    Category? @relation(fields: [categoryId], references: [id])
+  publishedAt DateTime  @default(now())
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+}
+
+model Event {
+  id          String      @id @default(uuid())
+  title       String
+  slug        String      @unique
+  description String?
+  poster      String?
+  eventDate   DateTime
+  eventTime   String?
+  location    String?
+  organizer   String?
+  contact     String?
+  status      EventStatus @default(UPCOMING)
+  gallery     String[]
+  report      String?
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+}
+
+model Activity {
+  id           String   @id @default(uuid())
+  title        String
+  slug         String   @unique
+  description  String?
+  activityDate DateTime
+  location     String?
+  photos       String[]
+  videos       String[]
+  participants String?
+  responsible  String?
+  report       String?
+  type         String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}
+
+model Member {
+  id         String   @id @default(uuid())
+  name       String
+  role       String
+  bio        String?
+  photo      String?
+  domain     String?
+  socialLink String?
+  contact    String?
+  team       String?
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+}
+
+model JocFamily {
+  id       String   @id @default(uuid())
+  name     String
+  role     String
+  bio      String?
+  photo    String?
+  parcours String?
+  team     String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Testimonial {
+  id        String            @id @default(uuid())
+  title     String
+  content   String
+  author    String
+  userId    String?
+  user      User?             @relation(fields: [userId], references: [id])
+  status    ModerationStatus @default(PENDING)
+  createdAt DateTime          @default(now())
+  updatedAt DateTime          @updatedAt
+}
+
+model Comment {
+  id        String            @id @default(uuid())
+  content   String
+  articleId String
+  article   Article           @relation(fields: [articleId], references: [id], onDelete: Cascade)
+  userId    String?
+  user      User?             @relation(fields: [userId], references: [id])
+  userName  String
+  status    ModerationStatus @default(PENDING)
+  createdAt DateTime          @default(now())
+}
+
+model Notification {
+  id        String   @id @default(uuid())
+  title     String
+  message   String
+  type      String
+  link      String?
+  createdAt DateTime @default(now())
+}
+
+model SocialLink {
+  id        String   @id @default(uuid())
+  platform  String
+  url       String
+  icon      String?
+  createdAt DateTime @default(now())
+}
+
+model Contribution {
+  id          String            @id @default(uuid())
+  type        String
+  title       String
+  content     String
+  authorName  String
+  authorEmail String?
+  userId      String?
+  user        User?             @relation(fields: [userId], references: [id])
+  status      ModerationStatus @default(PENDING)
+  adminReply  String?
+  createdAt   DateTime          @default(now())
+  updatedAt   DateTime          @updatedAt
+}
+
+model Page {
+  id        String   @id @default(uuid())
+  title     String
+  slug      String   @unique
+  content   String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model BlogSource {
+  id        String    @id @default(uuid())
+  name      String
+  url       String
+  feedUrl   String?
+  lastSync  DateTime?
+  createdAt DateTime  @default(now())
+}
