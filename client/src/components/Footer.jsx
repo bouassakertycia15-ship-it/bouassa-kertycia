@@ -42,11 +42,13 @@ export default function Footer() {
             <h3 className="font-semibold text-white mb-3 text-sm">Navigation</h3>
             <ul className="space-y-2 text-sm">
               <li><Link to="/magazine" className="hover:text-joc-400">Magazine</Link></li>
+              <li><Link to="/forum" className="hover:text-joc-400">Forum</Link></li>
               <li><Link to="/pourquoi-etre-jociste" className="hover:text-joc-400">Pourquoi être Jociste ?</Link></li>
               <li><Link to="/la-vie-dans-la-joc" className="hover:text-joc-400">La vie dans la JOC</Link></li>
               <li><Link to="/echo-audio" className="hover:text-joc-400">Écho Audio</Link></li>
               <li><Link to="/evenements" className="hover:text-joc-400">Événements</Link></li>
-              <li><Link to="/espace-echange" className="hover:text-joc-400">Espace d'échange</Link></li>
+              <li><Link to="/equipe" className="hover:text-joc-400">Équipe</Link></li>
+              <li><Link to="/famille-joc" className="hover:text-joc-400">Famille JOC</Link></li>
             </ul>
           </div>
 
@@ -72,11 +74,16 @@ export default function Footer() {
           <p className="text-xs text-gray-500">
             © {new Date().getFullYear()} Écho Jociste — JOC Congo-Brazzaville. Tous droits réservés.
           </p>
-          <p className="text-xs text-gray-500 flex items-center gap-1">
-            Fait avec <Heart size={12} className="text-joc-500" /> pour la jeunesse chrétienne
-          </p>
-          <Link to="/admin/login" className="text-xs text-gray-600 hover:text-gray-400">Administration</Link>
+          <div className="flex items-center gap-4 text-xs text-gray-500">
+            <Link to="/a-propos" className="hover:text-joc-400">À propos</Link>
+            <Link to="/confidentialite" className="hover:text-joc-400">Confidentialité</Link>
+            <Link to="/mentions-legales" className="hover:text-joc-400">Mentions légales</Link>
+            <Link to="/admin/login" className="hover:text-gray-400">Administration</Link>
+          </div>
         </div>
+        <p className="text-xs text-gray-600 text-center mt-3">
+          Fondatrice : Bouassa Bouetsia Kertycia Grace — JOC Congo-Brazzaville
+        </p>
       </div>
     </footer>
   )

@@ -489,6 +489,23 @@ async function main() {
   }
   console.log('Notifications created')
 
+  // Forum Categories
+  const forumCats = [
+    { name: 'Foi et spiritualité', slug: 'foi-et-spiritualite', description: 'Échanges sur la foi, la prière et la vie spirituelle', icon: 'Church', color: '#dc2626', order: 1 },
+    { name: 'Vie JOC', slug: 'vie-joc', description: 'La vie du mouvement, les équipes, les activités', icon: 'Users', color: '#0891b2', order: 2 },
+    { name: 'Jeunesse', slug: 'jeunesse', description: 'Paroles de jeunes, questions, défis', icon: 'Sparkles', color: '#f59e0b', order: 3 },
+    { name: 'Engagement citoyen', slug: 'engagement-citoyen', description: 'Engagement dans la société, citoyenneté, justice', icon: 'HeartHandshake', color: '#16a34a', order: 4 },
+    { name: 'Travail', slug: 'travail', description: 'Le monde du travail, la dignité du travailleur', icon: 'Briefcase', color: '#6366f1', order: 5 },
+    { name: 'Questions', slug: 'questions', description: 'Posez vos questions, échangez des réponses', icon: 'HelpCircle', color: '#7c3aed', order: 6 },
+    { name: 'Témoignages', slug: 'temoignages-forum', description: 'Partagez vos témoignages et expériences de vie', icon: 'MessageCircle', color: '#ea580c', order: 7 },
+  ]
+
+  for (const fc of forumCats) {
+    const existing = await prisma.forumCategory.findFirst({ where: { slug: fc.slug } })
+    if (!existing) await prisma.forumCategory.create({ data: fc })
+  }
+  console.log('Forum categories created')
+
   console.log('Seed completed successfully!')
 }
 

@@ -8,17 +8,33 @@ datasource db {
 }
 
 enum Role {
+  SUPER_ADMIN
   ADMIN
   EDITOR
   WRITER
   MANAGER
+  AUDIO_MANAGER
+  VIDEO_MANAGER
+  MODERATOR
+  EVENT_MANAGER
+  COMM_MANAGER
   READER
+}
+
+enum UserStatus {
+  ACTIVE
+  SUSPENDED
+  BLOCKED
 }
 
 enum ArticleStatus {
   DRAFT
+  IN_REVIEW
+  VALIDATED
+  SCHEDULED
   PUBLISHED
   ARCHIVED
+  REJECTED
 }
 
 enum ArticleSource {
@@ -39,18 +55,47 @@ enum ModerationStatus {
   ARCHIVED
 }
 
+enum TaskStatus {
+  TODO
+  IN_PROGRESS
+  IN_REVIEW
+  DONE
+}
+
+enum TaskPriority {
+  LOW
+  MEDIUM
+  HIGH
+  URGENT
+}
+
+enum MediaType {
+  IMAGE
+  AUDIO
+  VIDEO
+  DOCUMENT
+  OTHER
+}
+
 model User {
-  id            String   @id @default(uuid())
-  email         String   @unique
+  id            String      @id @default(uuid())
+  email         String      @unique
   password      String
   name          String
-  role          Role     @default(READER)
+  role          Role        @default(READER)
+  status        UserStatus  @default(ACTIVE)
   avatar        String?
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
+  bio           String?
+  lastActivity  DateTime?
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
   comments      Comment[]
   contributions Contribution[]
   testimonials  Testimonial[]
+  forumPosts    ForumPost[]
+  forumDiscussions ForumDiscussion[]
+  tasks         Task[]
+  auditLogs     AuditLog[]
 }
 
 model Category {
@@ -61,6 +106,7 @@ model Category {
   articles  Article[]
   podcasts  Podcast[]
   videos    Video[]
+  forumCategories ForumCategory[]
   createdAt DateTime @default(now())
 }
 
@@ -72,13 +118,13 @@ model Tag {
 }
 
 model Author {
-  id       String   @id @default(uuid())
-  name     String
-  bio      String?
-  avatar   String?
-  articles Article[]
-  podcasts Podcast[]
-  videos   Video[]
+  id        String   @id @default(uuid())
+  name      String
+  bio       String?
+  avatar    String?
+  articles  Article[]
+  podcasts  Podcast[]
+  videos    Video[]
   createdAt DateTime @default(now())
 }
 
@@ -99,7 +145,9 @@ model Article {
   dateModification DateTime?
   synchronized    Boolean       @default(false)
   featured        Boolean       @default(false)
+  viewCount       Int           @default(0)
   publishedAt     DateTime     @default(now())
+  scheduledAt     DateTime?
   createdAt       DateTime     @default(now())
   updatedAt       DateTime     @updatedAt
 
@@ -109,6 +157,22 @@ model Article {
   category   Category? @relation(fields: [categoryId], references: [id])
   tags       Tag[]
   comments   Comment[]
+  versions   ArticleVersion[]
+  tasks      Task[]
+  auditLogs  AuditLog[]
+}
+
+model ArticleVersion {
+  id        String   @id @default(uuid())
+  articleId String
+  article   Article @relation(fields: [articleId], references: [id], onDelete: Cascade)
+  version   Int
+  title     String
+  content   String
+  excerpt   String?
+  coverImage String?
+  editedBy  String
+  editedAt  DateTime @default(now())
 }
 
 model Podcast {
@@ -120,6 +184,8 @@ model Podcast {
   audioUrl    String
   duration    String?
   speaker     String?
+  viewCount   Int       @default(0)
+  status      ArticleStatus @default(PUBLISHED)
   authorId    String?
   author      Author?   @relation(fields: [authorId], references: [id])
   categoryId  String?
@@ -137,6 +203,8 @@ model Video {
   thumbnail   String?
   videoUrl    String
   speaker     String?
+  viewCount   Int       @default(0)
+  status      ArticleStatus @default(PUBLISHED)
   authorId    String?
   author      Author?   @relation(fields: [authorId], references: [id])
   categoryId  String?
@@ -158,8 +226,12 @@ model Event {
   organizer   String?
   contact     String?
   status      EventStatus @default(UPCOMING)
+  viewCount   Int         @default(0)
   gallery     String[]
   report      String?
+  relatedArticleId String?
+  relatedVideoId  String?
+  relatedPodcastId String?
   createdAt   DateTime    @default(now())
   updatedAt   DateTime    @updatedAt
 }
@@ -191,6 +263,7 @@ model Member {
   socialLink String?
   contact    String?
   team       String?
+  status     ModerationStatus @default(APPROVED)
   createdAt  DateTime @default(now())
   updatedAt  DateTime @updatedAt
 }
@@ -237,6 +310,7 @@ model Notification {
   message   String
   type      String
   link      String?
+  read      Boolean  @default(false)
   createdAt DateTime @default(now())
 }
 
@@ -279,4 +353,112 @@ model BlogSource {
   feedUrl   String?
   lastSync  DateTime?
   createdAt DateTime  @default(now())
+}
+
+// Forum models
+model ForumCategory {
+  id          String   @id @default(uuid())
+  name        String
+  slug        String   @unique
+  description String?
+  icon        String?
+  color       String?
+  order       Int      @default(0)
+  categoryId  String?
+  category    Category? @relation(fields: [categoryId], references: [id])
+  discussions ForumDiscussion[]
+  createdAt   DateTime @default(now())
+}
+
+model ForumDiscussion {
+  id          String   @id @default(uuid())
+  title       String
+  content     String
+  slug        String   @unique
+  views       Int      @default(0)
+  pinned      Boolean  @default(false)
+  locked      Boolean  @default(false)
+  hidden      Boolean  @default(false)
+  forumCategoryId String
+  forumCategory   ForumCategory @relation(fields: [forumCategoryId], references: [id], onDelete: Cascade)
+  userId      String?
+  user        User?    @relation(fields: [userId], references: [id])
+  authorName  String
+  posts       ForumPost[]
+  reports     Report[]
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model ForumPost {
+  id          String   @id @default(uuid())
+  content     String
+  discussionId String
+  discussion   ForumDiscussion @relation(fields: [discussionId], references: [id], onDelete: Cascade)
+  userId      String?
+  user        User?    @relation(fields: [userId], references: [id])
+  authorName  String
+  hidden      Boolean  @default(false)
+  reports     Report[]
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model Report {
+  id            String   @id @default(uuid())
+  reason        String
+  reporterName  String
+  status        ModerationStatus @default(PENDING)
+  discussionId  String?
+  discussion    ForumDiscussion? @relation(fields: [discussionId], references: [id], onDelete: Cascade)
+  postId        String?
+  post          ForumPost? @relation(fields: [postId], references: [id], onDelete: Cascade)
+  createdAt     DateTime @default(now())
+}
+
+// Admin models
+model AuditLog {
+  id          String   @id @default(uuid())
+  userId      String?
+  user        User?    @relation(fields: [userId], references: [id])
+  userName    String
+  userRole    String
+  action      String
+  entity      String
+  entityId    String?
+  entityTitle String?
+  details     String?
+  statusBefore String?
+  statusAfter  String?
+  articleId   String?
+  article     Article? @relation(fields: [articleId], references: [id], onDelete: SetNull)
+  createdAt   DateTime @default(now())
+}
+
+model Task {
+  id          String   @id @default(uuid())
+  title       String
+  description String?
+  type        String
+  status      TaskStatus @default(TODO)
+  priority    TaskPriority @default(MEDIUM)
+  dueDate     DateTime?
+  assigneeId  String?
+  assignee    User?    @relation(fields: [assigneeId], references: [id])
+  articleId   String?
+  article     Article? @relation(fields: [articleId], references: [id], onDelete: SetNull)
+  internalComment String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model Media {
+  id        String   @id @default(uuid())
+  name      String
+  type      MediaType
+  url       String
+  size      Int?
+  uploadedBy String?
+  associatedContent String?
+  createdAt DateTime @default(now())
 }

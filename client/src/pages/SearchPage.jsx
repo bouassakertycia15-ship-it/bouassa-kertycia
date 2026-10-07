@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useSearchParams, Link } from 'react-router-dom'
 import api from '../api/client.js'
-import { Search as SearchIcon, BookOpen, Headphones, Video, Calendar, User, Activity } from 'lucide-react'
+import { Search as SearchIcon, BookOpen, Headphones, Video, Calendar, User, Activity, MessageSquare, FileText } from 'lucide-react'
 
 export default function SearchPage() {
   const [searchParams] = useSearchParams()
@@ -125,6 +125,36 @@ export default function SearchPage() {
                     <h3 className="font-semibold text-gray-900">{a.title}</h3>
                     {a.description && <p className="text-sm text-gray-500 line-clamp-1">{a.description}</p>}
                   </Link>
+                ))}
+              </div>
+            </section>
+          )}
+
+          {/* Forum Discussions */}
+          {results.discussions?.length > 0 && (
+            <section>
+              <h2 className="font-bold text-gray-900 mb-3 flex items-center gap-2"><MessageSquare size={18} className="text-teal-600" /> Discussions ({results.discussions.length})</h2>
+              <div className="space-y-2">
+                {results.discussions.map((d) => (
+                  <Link key={d.id} to={`/forum/${d.slug}`} className="card p-4">
+                    <h3 className="font-semibold text-gray-900">{d.title}</h3>
+                    <p className="text-sm text-gray-500 line-clamp-1">{d.content}</p>
+                    {d.forumCategory && <span className="text-xs text-gray-400">{d.forumCategory.name}</span>}
+                  </Link>
+                ))}
+              </div>
+            </section>
+          )}
+
+          {/* Pages */}
+          {results.pages?.length > 0 && (
+            <section>
+              <h2 className="font-bold text-gray-900 mb-3 flex items-center gap-2"><FileText size={18} className="text-gray-600" /> Pages ({results.pages.length})</h2>
+              <div className="space-y-2">
+                {results.pages.map((p) => (
+                  <div key={p.id} className="card p-4">
+                    <h3 className="font-semibold text-gray-900">{p.title}</h3>
+                  </div>
                 ))}
               </div>
             </section>

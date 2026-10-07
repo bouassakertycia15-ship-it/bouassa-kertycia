@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import api from '../api/client.js'
 import ArticleCard from '../components/ArticleCard.jsx'
-import { ArrowRight, Calendar, Headphones, Video, Users, BookOpen, Heart, Quote, Bell } from 'lucide-react'
+import { ArrowRight, Calendar, Headphones, Video, Users, BookOpen, Heart, Quote, Bell, MessageSquare } from 'lucide-react'
 
 export default function Home() {
   const [data, setData] = useState({
@@ -50,8 +50,8 @@ export default function Home() {
 
   const quickLinks = [
     { to: '/pourquoi-etre-jociste', label: 'Pourquoi être Jociste ?', icon: Users, color: 'bg-joc-50 text-joc-600' },
-    { to: '/la-vie-dans-la-joc', label: 'La vie dans la JOC', icon: Heart, color: 'bg-amber-50 text-amber-600' },
-    { to: '/magazine', label: 'Magazine', icon: BookOpen, color: 'bg-blue-50 text-blue-600' },
+    { to: '/magazine/joseph-cardijn-methode-voir-juger-agir', label: 'Voir – Juger – Agir', icon: Heart, color: 'bg-amber-50 text-amber-600' },
+    { to: '/forum', label: 'Forum', icon: MessageSquare, color: 'bg-teal-50 text-teal-600' },
     { to: '/echo-audio', label: 'Écho Audio', icon: Headphones, color: 'bg-purple-50 text-purple-600' },
   ]
 
